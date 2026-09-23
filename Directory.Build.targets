@@ -1,0 +1,17 @@
+<!--  Copyright (c) Files Community. Licensed under the MIT License.  -->
+<Project>
+
+  <!--  Unpackaged dev: the XAML loader resolves library XAML (e.g. ms-appx:///Sidebar/SidebarView.xaml)
+        relative to the app root rather than inside the Files.App.Controls subtree, so mirror the
+        compiled XBF files of referenced library projects into the output root.  -->
+  <Target Name="_MirrorLibraryXbfForUnpackaged" AfterTargets="Build"
+          Condition="'$(MSBuildProjectName)' == 'Files.App' and '$(UnpackagedDev)' == 'true'">
+    <ItemGroup>
+      <_LibraryXbf Include="$(OutDir)Files.App.Controls\**\*.xbf" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_LibraryXbf)"
+          DestinationFolder="$(OutDir)%(_LibraryXbf.RecursiveDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

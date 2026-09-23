@@ -30,7 +30,7 @@ namespace Files.App.Data.Items
 		private readonly nint _oldWndProc;
 		private readonly WNDPROC _newWndProc;
 
-		private readonly ApplicationDataContainer _applicationDataContainer = ApplicationData.Current.LocalSettings;
+		private readonly AppSettingsContainer _applicationDataContainer = AppData.LocalSettings;
 
 		/// <summary>
 		/// Gets hWnd of this <see cref="Window"/>.

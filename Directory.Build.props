@@ -21,4 +21,13 @@
     <CsWinRTAotWarningLevel>3</CsWinRTAotWarningLevel>
 
   </PropertyGroup>
+
+  <!--  Unpackaged self-contained build for local dev on machines without MSIX activation (e.g. Windows Server).
+        Enable with: msbuild -p:UnpackagedDev=true -r win-x64  -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Files.App' and '$(UnpackagedDev)' == 'true'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <DefineConstants>$(DefineConstants);UNPACKAGED_DEV</DefineConstants>
+  </PropertyGroup>
 </Project>

@@ -180,7 +180,7 @@ namespace Files.App
 			public const string PrivacyPolicyUrl = @"https://files.community/privacy";
 			public const string SupportUsUrl = @"https://files.community/sponsor";
 			public const string CrowdinUrl = @"https://crowdin.com/project/files-app";
-			public static readonly string ReleaseNotesUrl = $"https://files.community/blog/posts/v{Package.Current.Id.Version.Major}-{Package.Current.Id.Version.Minor}-{Package.Current.Id.Version.Build}?minimal";
+			public static readonly string ReleaseNotesUrl = $"https://files.community/blog/posts/v{AppData.Version.Major}-{AppData.Version.Minor}-{AppData.Version.Build}?minimal";
 		}
 
 		public static class DocsPath
