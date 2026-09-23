@@ -33,6 +33,7 @@ namespace Files.App
 
 			ExtendsContentIntoTitleBar = true;
 			Title = "Files";
+			AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
 			AppWindow.TitleBar.ButtonBackgroundColor = Colors.Transparent;
 			AppWindow.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
 			AppWindow.TitleBar.ButtonPressedBackgroundColor = Colors.Transparent;
