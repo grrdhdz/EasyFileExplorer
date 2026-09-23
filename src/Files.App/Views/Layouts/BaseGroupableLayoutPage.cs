@@ -477,6 +477,19 @@ namespace Files.App.Views.Layouts
 			e.Handled = true;
 		}
 
+		protected void GroupHeader_Tapped(object sender, TappedRoutedEventArgs e)
+		{
+			if (((FrameworkElement)sender).DataContext is IGroupedCollectionHeader group)
+			{
+				if (group.Model.IsCollapsed)
+					group.Expand();
+				else
+					group.Collapse();
+			}
+
+			e.Handled = true;
+		}
+
 		// Disposer
 
 		public override void Dispose()

@@ -274,7 +274,7 @@ namespace Files.App.Utils.Storage
 			UpdateGroups(EventArgsCache.ResetCollectionChanged);
 		}
 
-		public void Add(T? item)
+		public virtual void Add(T? item)
 		{
 			if (item is null)
 				return;
@@ -294,7 +294,7 @@ namespace Files.App.Utils.Storage
 			UpdateGroups(e);
 		}
 
-		public void Clear()
+		public virtual void Clear()
 		{
 			lock (syncRoot)
 			{
@@ -326,7 +326,7 @@ namespace Files.App.Utils.Storage
 			}
 		}
 
-		public bool Remove(T? item)
+		public virtual bool Remove(T? item)
 		{
 			if (item is null)
 				return false;
@@ -372,7 +372,7 @@ namespace Files.App.Utils.Storage
 			}
 		}
 
-		public void Insert(int index, T? item)
+		public virtual void Insert(int index, T? item)
 		{
 			if (item is null)
 				return;
@@ -390,7 +390,7 @@ namespace Files.App.Utils.Storage
 			UpdateGroups(e);
 		}
 
-		public void RemoveAt(int index)
+		public virtual void RemoveAt(int index)
 		{
 			T item;
 
@@ -408,7 +408,7 @@ namespace Files.App.Utils.Storage
 			UpdateGroups(e);
 		}
 
-		public void AddRange(IEnumerable<T> items)
+		public virtual void AddRange(IEnumerable<T> items)
 		{
 			if (!items.Any())
 				return;
@@ -428,7 +428,7 @@ namespace Files.App.Utils.Storage
 			UpdateGroups(e);
 		}
 
-		public void InsertRange(int index, IEnumerable<T> items)
+		public virtual void InsertRange(int index, IEnumerable<T> items)
 		{
 			if (!items.Any())
 				return;
@@ -446,7 +446,7 @@ namespace Files.App.Utils.Storage
 			UpdateGroups(e);
 		}
 
-		public void RemoveRange(int index, int count)
+		public virtual void RemoveRange(int index, int count)
 		{
 			if (count <= 0)
 				return;
@@ -466,7 +466,7 @@ namespace Files.App.Utils.Storage
 			UpdateGroups(e);
 		}
 
-		public void ReplaceRange(int index, IEnumerable<T> items)
+		public virtual void ReplaceRange(int index, IEnumerable<T> items)
 		{
 			var count = items.Count();
 
@@ -491,7 +491,7 @@ namespace Files.App.Utils.Storage
 			UpdateGroups(e);
 		}
 
-		public void Sort()
+		public virtual void Sort()
 		{
 			lock (syncRoot)
 			{
@@ -499,7 +499,7 @@ namespace Files.App.Utils.Storage
 			}
 		}
 
-		public void Sort(Comparison<T> comparison)
+		public virtual void Sort(Comparison<T> comparison)
 		{
 			lock (syncRoot)
 			{
@@ -507,7 +507,7 @@ namespace Files.App.Utils.Storage
 			}
 		}
 
-		public void Order(Func<List<T>, IEnumerable<T>> func)
+		public virtual void Order(Func<List<T>, IEnumerable<T>> func)
 		{
 			IEnumerable<T> result;
 			lock (syncRoot)
@@ -518,7 +518,7 @@ namespace Files.App.Utils.Storage
 			}
 		}
 
-		public void OrderOne(Func<List<T>, IEnumerable<T>> func, T item)
+		public virtual void OrderOne(Func<List<T>, IEnumerable<T>> func, T item)
 		{
 			List<T> result;
 			lock (syncRoot)

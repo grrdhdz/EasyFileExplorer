@@ -1423,8 +1423,24 @@
 										Margin="0,0,0,4"
 										VerticalAlignment="Bottom"
 										AutomationProperties.Name="{x:Bind Model.Text}"
-										Spacing="0">
+										Spacing="0"
+										Tapped="GroupHeader_Tapped">
 										<StackPanel Orientation="Horizontal" Spacing="4">
+
+											<Grid Width="16" VerticalAlignment="Center">
+												<FontIcon
+													HorizontalAlignment="Center"
+													FontSize="10"
+													Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+													Glyph="&#xE70D;"
+													Visibility="{x:Bind Model.IsCollapsed, Mode=OneWay, Converter={StaticResource NegatedBoolToVisibilityConverter}}" />
+												<FontIcon
+													HorizontalAlignment="Center"
+													FontSize="10"
+													Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+													Glyph="&#xE76C;"
+													Visibility="{x:Bind Model.IsCollapsed, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+											</Grid>
 
 											<TextBlock
 												VerticalAlignment="Center"

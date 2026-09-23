@@ -49,12 +49,185 @@ namespace Files.App.Utils.Storage
 		{
 			if (e.PropertyName == nameof(Count))
 			{
+				var count = Count + (collapsedItems?.Count ?? 0);
 				Model.CountText = string.Format(
-					Count > 1
+					count > 1
 						? Strings.GroupItemsCount_Plural.GetLocalizedResource()
 						: Strings.GroupItemsCount_Singular.GetLocalizedResource(),
-					Count);
+					count);
 			}
+		}
+
+		// Collapsing
+
+		private List<T>? collapsedItems;
+
+		/// <summary>
+		/// Removes all items from the collection so the list renders only the group header.
+		/// The items are stashed and can be restored with <see cref="Expand"/>.
+		/// </summary>
+		public void Collapse()
+		{
+			if (collapsedItems is not null)
+				return;
+
+			collapsedItems = new List<T>(this);
+			base.Clear();
+			Model.IsCollapsed = true;
+		}
+
+		/// <summary>
+		/// Restores the stashed items after a collapse.
+		/// </summary>
+		public void Expand()
+		{
+			if (collapsedItems is null)
+				return;
+
+			var items = collapsedItems;
+			collapsedItems = null;
+			base.AddRange(items);
+			Model.IsCollapsed = false;
+		}
+
+		// While collapsed, mutations are redirected to the stash so the group stays empty
+		// (e.g. new files joining a collapsed group stay hidden until it is expanded).
+
+		public override void Add(T? item)
+		{
+			if (collapsedItems is not null)
+			{
+				if (item is not null)
+					collapsedItems.Add(item);
+				return;
+			}
+			base.Add(item);
+		}
+
+		public override void Insert(int index, T? item)
+		{
+			if (collapsedItems is not null)
+			{
+				if (item is not null)
+					collapsedItems.Insert(Math.Min(index, collapsedItems.Count), item);
+				return;
+			}
+			base.Insert(index, item);
+		}
+
+		public override void AddRange(IEnumerable<T> items)
+		{
+			if (collapsedItems is not null)
+			{
+				collapsedItems.AddRange(items);
+				return;
+			}
+			base.AddRange(items);
+		}
+
+		public override void InsertRange(int index, IEnumerable<T> items)
+		{
+			if (collapsedItems is not null)
+			{
+				collapsedItems.InsertRange(Math.Min(index, collapsedItems.Count), items);
+				return;
+			}
+			base.InsertRange(index, items);
+		}
+
+		public override bool Remove(T? item)
+		{
+			if (collapsedItems is not null && collapsedItems.Remove(item!))
+				return true;
+			return base.Remove(item);
+		}
+
+		public override void RemoveAt(int index)
+		{
+			if (collapsedItems is not null)
+			{
+				if (index >= 0 && index < collapsedItems.Count)
+					collapsedItems.RemoveAt(index);
+				return;
+			}
+			base.RemoveAt(index);
+		}
+
+		public override void RemoveRange(int index, int count)
+		{
+			if (collapsedItems is not null)
+			{
+				if (index >= 0 && count > 0 && index + count <= collapsedItems.Count)
+					collapsedItems.RemoveRange(index, count);
+				return;
+			}
+			base.RemoveRange(index, count);
+		}
+
+		public override void ReplaceRange(int index, IEnumerable<T> items)
+		{
+			if (collapsedItems is not null)
+			{
+				var newItems = items.ToList();
+				if (index >= 0 && index + newItems.Count <= collapsedItems.Count)
+				{
+					collapsedItems.RemoveRange(index, newItems.Count);
+					collapsedItems.InsertRange(index, newItems);
+				}
+				return;
+			}
+			base.ReplaceRange(index, items);
+		}
+
+		public override void Clear()
+		{
+			collapsedItems = null;
+			Model.IsCollapsed = false;
+			base.Clear();
+		}
+
+		public override void Sort()
+		{
+			if (collapsedItems is not null)
+			{
+				collapsedItems.Sort();
+				return;
+			}
+			base.Sort();
+		}
+
+		public override void Sort(Comparison<T> comparison)
+		{
+			if (collapsedItems is not null)
+			{
+				collapsedItems.Sort(comparison);
+				return;
+			}
+			base.Sort(comparison);
+		}
+
+		public override void Order(Func<List<T>, IEnumerable<T>> func)
+		{
+			if (collapsedItems is not null)
+			{
+				collapsedItems = func.Invoke(collapsedItems).ToList();
+				return;
+			}
+			base.Order(func);
+		}
+
+		public override void OrderOne(Func<List<T>, IEnumerable<T>> func, T item)
+		{
+			if (collapsedItems is not null)
+			{
+				var result = func.Invoke(collapsedItems).ToList();
+				collapsedItems.Remove(item);
+				var index = result.IndexOf(item);
+				if (index != -1)
+					collapsedItems.Insert(index, item);
+				return;
+			}
+			base.OrderOne(func, item);
 		}
 
 		public void InitializeExtendedGroupHeaderInfoAsync()

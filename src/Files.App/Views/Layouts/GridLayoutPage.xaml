@@ -1025,8 +1025,10 @@
 										VerticalAlignment="Bottom"
 										AutomationProperties.Name="{x:Bind Model.Text}"
 										ColumnSpacing="8"
-										RowSpacing="8">
+										RowSpacing="8"
+										Tapped="GroupHeader_Tapped">
 										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="16" />
 											<ColumnDefinition Width="Auto" />
 											<ColumnDefinition Width="Auto" />
 											<ColumnDefinition Width="Auto" />
@@ -1036,9 +1038,28 @@
 											<RowDefinition Height="Auto" />
 										</Grid.RowDefinitions>
 
-										<TextBlock
+										<Grid
 											Grid.Row="0"
 											Grid.Column="0"
+											Width="16"
+											VerticalAlignment="Center">
+											<FontIcon
+												HorizontalAlignment="Center"
+												FontSize="10"
+												Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+												Glyph="&#xE70D;"
+												Visibility="{x:Bind Model.IsCollapsed, Mode=OneWay, Converter={StaticResource NegatedBoolToVisibilityConverter}}" />
+											<FontIcon
+												HorizontalAlignment="Center"
+												FontSize="10"
+												Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+												Glyph="&#xE76C;"
+												Visibility="{x:Bind Model.IsCollapsed, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+										</Grid>
+
+										<TextBlock
+											Grid.Row="0"
+											Grid.Column="1"
 											VerticalAlignment="Center"
 											FontSize="16"
 											Style="{StaticResource SubtitleTextBlockStyle}"
@@ -1046,7 +1067,7 @@
 
 										<TextBlock
 											Grid.Row="0"
-											Grid.Column="1"
+											Grid.Column="2"
 											VerticalAlignment="Center"
 											Style="{StaticResource App.Theme.BodyTextBlockStyle}"
 											Text="{x:Bind Model.CountText, Mode=OneWay}"
@@ -1054,7 +1075,7 @@
 
 										<TextBlock
 											Grid.Row="0"
-											Grid.Column="2"
+											Grid.Column="3"
 											VerticalAlignment="Center"
 											FontSize="14"
 											Style="{StaticResource SubheaderTextBlockStyle}"
@@ -1063,6 +1084,7 @@
 
 										<TextBlock
 											Grid.Row="1"
+											Grid.Column="1"
 											Grid.ColumnSpan="3"
 											Style="{StaticResource App.Theme.BodyTextBlockStyle}"
 											Text="{x:Bind Model.CountText, Mode=OneWay}"

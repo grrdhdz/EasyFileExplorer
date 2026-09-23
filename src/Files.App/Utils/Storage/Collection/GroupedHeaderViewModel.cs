@@ -46,6 +46,17 @@ namespace Files.App.Utils.Storage
 			set => SetProperty(ref showCountTextBelow, value);
 		}
 
+		private bool isCollapsed;
+
+		/// <summary>
+		/// Whether the group's items are hidden in the list view.
+		/// </summary>
+		public bool IsCollapsed
+		{
+			get => isCollapsed;
+			set => SetProperty(ref isCollapsed, value);
+		}
+
 		private ImageSource? imageSource;
 
 		public ImageSource? ImageSource

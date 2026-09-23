@@ -12,5 +12,15 @@ namespace Files.App.Utils.Storage
 	public interface IGroupedCollectionHeader
 	{
 		public GroupedHeaderViewModel Model { get; set; }
+
+		/// <summary>
+		/// Hides the group's items so only the header is rendered.
+		/// </summary>
+		public void Collapse();
+
+		/// <summary>
+		/// Restores the group's items after a collapse.
+		/// </summary>
+		public void Expand();
 	}
 }
