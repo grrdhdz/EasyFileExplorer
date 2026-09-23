@@ -1,0 +1,13 @@
+* text=auto eol=crlf
+*.cs text eol=crlf
+*.xaml text eol=crlf
+*.xml text eol=crlf
+*.config text eol=crlf
+*.json text eol=crlf
+*.md text eol=crlf
+*.yml text eol=crlf
+*.ps1 text eol=crlf
+*.sln text eol=crlf
+*.png binary
+*.ico binary
+*.jpg binary
