@@ -69,6 +69,7 @@
             </Grid.ColumnDefinitions>
 
             <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto"
+                          Background="{ThemeResource LayerFillColorDefaultBrush}"
                           BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,1,0">
                 <StackPanel x:Name="SideNav" Padding="6,4" Spacing="2" />
             </ScrollViewer>
@@ -94,7 +95,7 @@
                 </Grid>
 
                 <!-- Vista de detalles virtualizada -->
-                <muxc:ListView x:Name="FileList" Grid.Row="1"
+                <muxc:ListView x:Name="FileList" Grid.Row="1" Background="Transparent"
                                ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}"
                                SelectionMode="Extended"
                                CanDragItems="True" AllowDrop="True"

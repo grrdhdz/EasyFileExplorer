@@ -8,7 +8,11 @@
     xmlns:views="using:EasyFileExplorer.Explorer.Views"
     Title="EasyFileExplorer">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid Background="Transparent">
+        <!-- Región de arrastre bajo la tira de pestañas: los huecos transparentes del
+             TabView dejan pasar el input hasta aquí (patrón de Windows Terminal). -->
+        <Border x:Name="TitleBarDragArea" Height="40" VerticalAlignment="Top"
+                Background="Transparent" />
         <muxc:TabView x:Name="Tabs"
                       TabItemsSource="{x:Bind ViewModel.Tabs, Mode=OneWay}"
                       SelectedItem="{x:Bind ViewModel.SelectedTab, Mode=TwoWay}"
@@ -26,6 +30,10 @@
                     </muxc:TabViewItem>
                 </DataTemplate>
             </muxc:TabView.TabItemTemplate>
+            <!-- Reserva el espacio que ocupan los botones de ventana (min/max/close). -->
+            <muxc:TabView.TabStripFooter>
+                <Border Width="144" Background="Transparent" />
+            </muxc:TabView.TabStripFooter>
         </muxc:TabView>
     </Grid>
 </Window>

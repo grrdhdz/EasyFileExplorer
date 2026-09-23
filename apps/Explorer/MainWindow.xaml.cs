@@ -1,7 +1,9 @@
+using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Windows.System;
 using EasyFileExplorer.Explorer.Views;
 using EasyFileExplorer.Explorer.ViewModels;
@@ -24,6 +26,15 @@ public sealed partial class MainWindow : Window
             AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico"));
         }
         catch { /* icono opcional en desarrollo */ }
+
+        // Botones min/max/close integrados en la fila de pestañas.
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(TitleBarDragArea);
+
+        if (MicaController.IsSupported())
+            SystemBackdrop = new MicaBackdrop();
+        else if (DesktopAcrylicController.IsSupported())
+            SystemBackdrop = new DesktopAcrylicBackdrop();
 
         Content.KeyDown += OnRootKeyDown;
 
