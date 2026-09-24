@@ -49,7 +49,7 @@ namespace Files.App
 			{
 				try
 				{
-					File.AppendAllText(@"C:\Users\Administrator\files-fce.log",
+					File.AppendAllText(Path.Combine(Path.GetTempPath(), "files-fce.log"),
 						$"{DateTime.Now:HH:mm:ss.fff} {e.Exception.GetType().FullName} 0x{e.Exception.HResult:X8}: {e.Exception.Message}\n{e.Exception.StackTrace}\n\n");
 				}
 				catch { }
