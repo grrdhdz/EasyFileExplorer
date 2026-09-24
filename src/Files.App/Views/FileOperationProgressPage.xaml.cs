@@ -1,6 +1,7 @@
 // Copyright (c) Files Community
 // Licensed under the MIT License.
 
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace Files.App.Views
@@ -12,6 +13,8 @@ namespace Files.App.Views
 	{
 		public ObservableCollection<StatusCenterItem> Operations
 			=> FileOperationProgressWindow.Operations;
+
+		public FrameworkElement TitleBarElement => WindowTitleBar;
 
 		public FileOperationProgressPage()
 		{

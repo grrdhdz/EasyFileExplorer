@@ -18,13 +18,16 @@ namespace Files.App.Views
 	internal static class FileOperationProgressWindow
 	{
 		private const int WindowWidth = 480;
-		private const int ItemHeight = 190;
-		private const int MinWindowHeight = 220;
-		private const int MaxWindowHeight = 700;
+		private const int TitleBarHeight = 36;
+		private const int ItemHeight = 148;
+		private const int ExpandedItemHeight = 104;
+		private const int MinWindowHeight = 240;
+		private const int MaxWindowHeight = 720;
 
 		private static readonly StatusCenterViewModel _viewModel = Ioc.Default.GetRequiredService<StatusCenterViewModel>();
 		private static WindowEx? _window;
 		private static bool _initialized;
+		private static bool _userDismissed;
 
 		internal static ObservableCollection<StatusCenterItem> Operations { get; } = [];
 
@@ -57,6 +60,12 @@ namespace Files.App.Views
 					Untrack(item);
 		}
 
+		// The operation is actually transferring once enumeration finished (conflict
+		// dialogs are resolved during enumeration); the item name is a fallback for
+		// operations that never report enumeration completion.
+		private static bool TransferStarted(StatusCenterItem item)
+			=> !item.IsDiscovering || !string.IsNullOrEmpty(item.CurrentProcessingItemName);
+
 		private static void TrackIfActive(StatusCenterItem item)
 		{
 			if (!TracksOperation(item) || Operations.Contains(item))
@@ -65,18 +74,47 @@ namespace Files.App.Views
 			Operations.Add(item);
 			item.PropertyChanged += OnItemPropertyChanged;
 
-			UpdateWindowSize();
-			Show();
+			// A new operation always reopens the window
+			_userDismissed = false;
+			EnsureShown();
 		}
 
 		private static void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
 		{
+			if (sender is not StatusCenterItem item)
+				return;
+
 			if (e.PropertyName is nameof(StatusCenterItem.FileSystemOperationReturnResult)
-				&& sender is StatusCenterItem item
 				&& item.FileSystemOperationReturnResult is not ReturnResult.InProgress)
 			{
 				Untrack(item);
+				return;
 			}
+
+			if (e.PropertyName is nameof(StatusCenterItem.IsExpanded))
+			{
+				UpdateWindowSize();
+				return;
+			}
+
+			// IsDiscovering doesn't raise changes; Message and the current item name
+			// are updated when enumeration completes and transfer begins
+			if (e.PropertyName is nameof(StatusCenterItem.Message)
+				or nameof(StatusCenterItem.CurrentProcessingItemName))
+			{
+				EnsureShown();
+			}
+		}
+
+		private static void EnsureShown()
+		{
+			if (Operations.Count == 0 || _userDismissed || !Operations.Any(TransferStarted))
+				return;
+
+			if (_window is not null && _window.AppWindow.IsVisible)
+				UpdateWindowSize();
+			else
+				Show();
 		}
 
 		private static void Untrack(StatusCenterItem item)
@@ -98,7 +136,11 @@ namespace Files.App.Views
 			var themeService = Ioc.Default.GetRequiredService<IAppThemeModeService>();
 			var window = _window ??= CreateWindow(themeService);
 			if (window.Content is Frame frame)
+			{
 				frame.RequestedTheme = themeService.AppThemeMode;
+				if (frame.Content is FileOperationProgressPage page)
+					window.SetTitleBar(page.TitleBarElement);
+			}
 			themeService.SetAppThemeMode(window, window.AppWindow.TitleBar, themeService.AppThemeMode, callThemeModeChangedEvent: false);
 
 			window.AppWindow.Show();
@@ -110,16 +152,23 @@ namespace Files.App.Views
 			var frame = new Frame { RequestedTheme = themeService.AppThemeMode };
 			var window = new WindowEx(440, MinWindowHeight)
 			{
+				ExtendsContentIntoTitleBar = true,
 				IsMaximizable = false,
 				Content = frame,
 				SystemBackdrop = new AppSystemBackdrop(true),
 			};
 
-			// Closing the window only hides this surface; the Status Center keeps tracking the operations
-			window.Closed += (_, _) => _window = null;
+			// Closing the window only hides this surface; the Status Center keeps tracking the operations.
+			// If it was closed mid-operation, stay hidden until the next new operation arrives.
+			window.Closed += (_, _) =>
+			{
+				_window = null;
+				_userDismissed = Operations.Count > 0;
+			};
 
 			var appWindow = window.AppWindow;
 			appWindow.Title = "Files";
+			appWindow.TitleBar.ExtendsContentIntoTitleBar = true;
 			appWindow.SetIcon(AppLifecycleHelper.AppIconPath);
 			frame.Navigate(typeof(FileOperationProgressPage), null, new SuppressNavigationTransitionInfo());
 
@@ -138,7 +187,11 @@ namespace Files.App.Views
 		private static void Resize(AppWindow appWindow)
 		{
 			var dpi = App.AppModel.AppWindowDPI;
-			var height = Math.Clamp(56 + Operations.Count * ItemHeight, MinWindowHeight, MaxWindowHeight);
+			var height = Math.Clamp(
+				TitleBarHeight + 40
+					+ Operations.Count * ItemHeight
+					+ Operations.Count(i => i.IsExpanded) * ExpandedItemHeight,
+				MinWindowHeight, MaxWindowHeight);
 			appWindow.Resize(new SizeInt32(
 				Math.Max(1, Convert.ToInt32(WindowWidth * dpi)),
 				Math.Max(1, Convert.ToInt32(height * dpi))));
