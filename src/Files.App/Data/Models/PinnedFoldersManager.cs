@@ -150,17 +150,27 @@ namespace Files.App.Data.Models
 
 				locationItem.IconData = result;
 
+				var loaded = false;
+
 				// Assign Icon on the UI thread: it raises PropertyChanged, which builds a XAML IconElement in a realized SidebarItem.
 				await MainWindow.Instance.DispatcherQueue.EnqueueOrInvokeAsync(async () =>
 				{
 					var bitmapImage = await locationItem.IconData.ToBitmapAsync();
 					if (bitmapImage is not null)
+					{
 						locationItem.Icon = bitmapImage;
+						loaded = true;
+					}
 				});
+
+				// Fall back to the generic icon when the shell returns nothing; a null Icon leaves the row blank forever
+				if (!loaded)
+					await LoadDefaultIconForLocationItemAsync(locationItem);
 			}
 			catch (Exception ex)
 			{
 				App.Logger.LogWarning(ex, $"Error loading icon for {path}");
+				await LoadDefaultIconForLocationItemAsync(locationItem);
 			}
 		}
 
