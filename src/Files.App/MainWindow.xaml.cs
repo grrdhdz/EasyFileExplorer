@@ -213,6 +213,8 @@ namespace Files.App
 					break;
 			}
 
+			FileOperationProgressWindow.Initialize();
+
 			var appWindow = AppWindow;
 			if (appWindow is not null && !appWindow.IsVisible)
 			{

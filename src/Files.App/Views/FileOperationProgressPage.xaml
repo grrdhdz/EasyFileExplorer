@@ -1,0 +1,233 @@
+<!--  Copyright (c) Files Community. Licensed under the MIT License.  -->
+<Page
+	x:Class="Files.App.Views.FileOperationProgressPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:helpers="using:Files.App.Helpers"
+	xmlns:local="using:Files.App.Views"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:statuscenter="using:Files.App.Utils.StatusCenter"
+	xmlns:statuscenterui="using:Files.App.UserControls.StatusCenter"
+	mc:Ignorable="d">
+
+	<Page.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="ms-appx:///Styles/StatusCenterStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Page.Resources>
+
+	<Grid x:Name="RootGrid" Padding="12,4,12,12">
+
+		<ListView
+			x:Name="OperationsListView"
+			ItemsSource="{x:Bind Operations, Mode=OneWay}"
+			ScrollViewer.VerticalScrollBarVisibility="Auto"
+			ScrollViewer.VerticalScrollMode="Enabled"
+			SelectionMode="None">
+
+			<ListView.ItemContainerStyle>
+				<Style BasedOn="{StaticResource DefaultListViewItemStyle}" TargetType="ListViewItem">
+					<Setter Property="Margin" Value="0,4,0,4" />
+					<Setter Property="Padding" Value="0,0,0,0" />
+					<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+				</Style>
+			</ListView.ItemContainerStyle>
+
+			<ListView.ItemTemplate>
+				<DataTemplate x:DataType="statuscenter:StatusCenterItem">
+					<Grid
+						Padding="12"
+						HorizontalAlignment="Stretch"
+						AutomationProperties.Name="{x:Bind Header, Mode=OneWay}"
+						Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+						BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+						BorderThickness="1"
+						CornerRadius="{StaticResource OverlayCornerRadius}">
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+
+						<Grid.Transitions>
+							<TransitionCollection>
+								<RepositionThemeTransition />
+							</TransitionCollection>
+						</Grid.Transitions>
+
+						<!--  Operation header: icon, title, expander  -->
+						<Grid Grid.Row="0">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+
+							<Grid Grid.Column="0">
+								<Border
+									Width="32"
+									Height="32"
+									HorizontalAlignment="Center"
+									VerticalAlignment="Center"
+									Background="{x:Bind ItemKind, Converter={StaticResource StatusCenterStateToBrushConverter}, ConverterParameter=True, Mode=OneWay}"
+									CornerRadius="16"
+									Opacity="{x:Bind IconBackgroundCircleBorderOpacity, Mode=OneWay}" />
+								<PathIcon
+									Width="16"
+									Height="16"
+									HorizontalAlignment="Center"
+									VerticalAlignment="Center"
+									Data="{x:Bind ItemIconKind, Converter={StaticResource StatusCenterStateToStateIconConverter}, Mode=OneWay}"
+									Foreground="{x:Bind ItemKind, Converter={StaticResource StatusCenterStateToBrushConverter}, Mode=OneWay}" />
+							</Grid>
+
+							<TextBlock
+								Grid.Column="1"
+								Margin="12,0"
+								VerticalAlignment="Center"
+								MaxLines="2"
+								Style="{StaticResource BodyStrongTextBlockStyle}"
+								Text="{x:Bind Header, Mode=OneWay}"
+								TextTrimming="CharacterEllipsis"
+								ToolTipService.ToolTip="{x:Bind HeaderTooltip, Mode=OneWay}" />
+
+							<ToggleButton
+								x:Name="ExpandCollapseChevronItemButton"
+								Grid.Column="2"
+								Width="32"
+								Height="32"
+								Padding="0"
+								x:Load="{x:Bind IsSpeedAndProgressAvailable, Mode=OneWay}"
+								Background="Transparent"
+								BorderBrush="Transparent"
+								IsChecked="{x:Bind IsExpanded, Mode=TwoWay}">
+								<AnimatedIcon
+									Width="16"
+									Height="16"
+									HorizontalAlignment="Center"
+									VerticalAlignment="Center"
+									AnimatedIcon.State="{x:Bind AnimatedIconState, Mode=OneWay}"
+									AutomationProperties.AccessibilityView="Raw"
+									RenderTransformOrigin="0.5, 0.5">
+									<animatedvisuals:AnimatedChevronUpDownSmallVisualSource />
+									<AnimatedIcon.FallbackIconSource>
+										<FontIconSource
+											FontFamily="{StaticResource SymbolThemeFontFamily}"
+											FontSize="16"
+											Glyph="{StaticResource ExpanderChevronDownGlyph}"
+											IsTextScaleFactorEnabled="False" />
+									</AnimatedIcon.FallbackIconSource>
+								</AnimatedIcon>
+							</ToggleButton>
+						</Grid>
+
+						<!--  Current item name  -->
+						<TextBlock
+							x:Name="CurrentProcessingItemNameTextBlock"
+							Grid.Row="1"
+							Margin="44,2,0,0"
+							x:Load="{x:Bind CurrentProcessingItemName, Converter={StaticResource EmptyStringToBoolConverter}, Mode=OneWay}"
+							Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+							MaxLines="1"
+							Style="{StaticResource CaptionTextBlockStyle}"
+							TextTrimming="CharacterEllipsis"
+							TextWrapping="NoWrap"
+							ToolTipService.ToolTip="{x:Bind CurrentProcessingItemName, Mode=OneWay}">
+							<Run Text="{helpers:ResourceString Name=NameWithColon}" />
+							<Run Text="{x:Bind CurrentProcessingItemName, Mode=OneWay}" />
+						</TextBlock>
+
+						<!--  Progress bar & percentage  -->
+						<Grid
+							Grid.Row="2"
+							Margin="0,8,0,0"
+							ColumnSpacing="8">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<ProgressBar
+								Grid.Column="0"
+								VerticalAlignment="Center"
+								Foreground="{ThemeResource App.Theme.FillColorAttentionBrush}"
+								IsIndeterminate="{x:Bind IsIndeterminateProgress, Mode=OneWay}"
+								Value="{x:Bind ProgressPercentage, Mode=OneWay}" />
+							<TextBlock
+								Grid.Column="1"
+								VerticalAlignment="Center"
+								Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+								Style="{StaticResource CaptionTextBlockStyle}"
+								Text="{x:Bind ProgressPercentageText, Mode=OneWay}" />
+						</Grid>
+
+						<!--  Expanded: speed graph  -->
+						<Grid
+							Grid.Row="3"
+							Height="88"
+							Margin="0,8,0,0"
+							VerticalAlignment="Top"
+							BorderBrush="{ThemeResource ControlStrongStrokeColorDefaultBrush}"
+							BorderThickness="1"
+							CornerRadius="4"
+							Visibility="{x:Bind IsExpanded, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+							<Grid Padding="-2,-2,-2,-2">
+								<statuscenterui:SpeedGraph Points="{x:Bind SpeedGraphValues, Mode=OneWay}" />
+							</Grid>
+							<StackPanel Margin="8,4">
+								<TextBlock
+									HorizontalAlignment="Right"
+									FontSize="10"
+									Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+									Style="{StaticResource CaptionTextBlockStyle}"
+									Text="{helpers:ResourceString Name=SpeedWithColon}" />
+								<TextBlock
+									HorizontalAlignment="Right"
+									FontSize="13"
+									Style="{StaticResource BodyStrongTextBlockStyle}"
+									Text="{x:Bind SpeedText, Mode=OneWay}" />
+							</StackPanel>
+						</Grid>
+
+						<!--  Footer: processed info + cancel  -->
+						<Grid
+							Grid.Row="4"
+							Margin="0,8,0,0">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<TextBlock
+								Grid.Column="0"
+								VerticalAlignment="Center"
+								Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+								MaxLines="1"
+								Style="{StaticResource CaptionTextBlockStyle}"
+								Text="{x:Bind Message, Mode=OneWay}"
+								TextTrimming="CharacterEllipsis"
+								TextWrapping="NoWrap"
+								ToolTipService.ToolTip="{x:Bind Message, Mode=OneWay}" />
+							<Button
+								Grid.Column="1"
+								Height="28"
+								Padding="12,0"
+								VerticalAlignment="Center"
+								AutomationProperties.Name="{helpers:ResourceString Name=Cancel}"
+								Command="{x:Bind CancelCommand}"
+								Content="{helpers:ResourceString Name=Cancel}"
+								FontSize="12"
+								IsEnabled="{x:Bind IsCancelable, Mode=OneWay}" />
+						</Grid>
+
+					</Grid>
+				</DataTemplate>
+			</ListView.ItemTemplate>
+
+		</ListView>
+	</Grid>
+</Page>
