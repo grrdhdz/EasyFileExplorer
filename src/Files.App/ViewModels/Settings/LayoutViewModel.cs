@@ -49,6 +49,19 @@ namespace Files.App.ViewModels.Settings
 			}
 		}
 
+		public bool ShowFileOperationProgressWindow
+		{
+			get => UserSettingsService.LayoutSettingsService.ShowFileOperationProgressWindow;
+			set
+			{
+				if (value != UserSettingsService.LayoutSettingsService.ShowFileOperationProgressWindow)
+				{
+					UserSettingsService.LayoutSettingsService.ShowFileOperationProgressWindow = value;
+					OnPropertyChanged();
+				}
+			}
+		}
+
 		// Layout mode
 
 		public FolderLayoutModes DefaultLayoutMode

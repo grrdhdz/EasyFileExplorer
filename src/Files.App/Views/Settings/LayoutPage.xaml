@@ -62,6 +62,18 @@
 				</uc:ComboBoxEx>
 			</wctcontrols:SettingsCard>
 
+			<!--  File operation progress window  -->
+			<wctcontrols:SettingsCard Header="{helpers:ResourceString Name=ShowFileOperationProgressWindow}">
+				<wctcontrols:SettingsCard.HeaderIcon>
+					<FontIcon Glyph="&#xE8C8;" />
+				</wctcontrols:SettingsCard.HeaderIcon>
+
+				<ToggleSwitch
+					x:Name="FileOperationProgressWindowToggleSwitch"
+					AutomationProperties.Name="{helpers:ResourceString Name=ShowFileOperationProgressWindow}"
+					IsOn="{x:Bind ViewModel.ShowFileOperationProgressWindow, Mode=TwoWay}" />
+			</wctcontrols:SettingsCard>
+
 			<!--  Sorting & grouping  -->
 			<TextBlock
 				Padding="0,16,0,4"

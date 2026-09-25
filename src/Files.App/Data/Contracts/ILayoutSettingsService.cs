@@ -11,6 +11,11 @@ namespace Files.App.Data.Contracts
 		bool SyncFolderPreferencesAcrossDirectories { get; set; }
 
 		/// <summary>
+		/// Gets or sets a value indicating whether to show file operation progress in a separate floating window.
+		/// </summary>
+		bool ShowFileOperationProgressWindow { get; set; }
+
+		/// <summary>
 		/// Gets or sets a value indicating the default layout mode.
 		/// </summary>
 		FolderLayoutModes DefaultLayoutMode { get; set; }

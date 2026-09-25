@@ -17,6 +17,12 @@ namespace Files.App.Services.Settings
 			set => Set(value);
 		}
 
+		public bool ShowFileOperationProgressWindow
+		{
+			get => Get(true);
+			set => Set(value);
+		}
+
 		public FolderLayoutModes DefaultLayoutMode
 		{
 			get => (FolderLayoutModes)Get((long)FolderLayoutModes.Adaptive);

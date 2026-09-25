@@ -4534,6 +4534,9 @@
   <data name="ShowStatusCenterButton" xml:space="preserve">
     <value>Mostrar botón del centro de actividades</value>
   </data>
+  <data name="ShowFileOperationProgressWindow" xml:space="preserve">
+    <value>Mostrar el progreso de las operaciones de archivo en una ventana separada</value>
+  </data>
   <data name="StatusCenterProgressRing" xml:space="preserve">
     <value>Anillo de progreso del centro de actividades</value>
     <comment>Screen reader name for the status center progress ring</comment>
