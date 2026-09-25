@@ -25,9 +25,11 @@ namespace Files.App.Views
 		private const int MaxWindowHeight = 720;
 
 		private static readonly StatusCenterViewModel _viewModel = Ioc.Default.GetRequiredService<StatusCenterViewModel>();
+		private static readonly IUserSettingsService _userSettings = Ioc.Default.GetRequiredService<IUserSettingsService>();
 		private static WindowEx? _window;
 		private static bool _initialized;
 		private static bool _userDismissed;
+		private static CancellationTokenSource? _pendingShow;
 
 		internal static ObservableCollection<StatusCenterItem> Operations { get; } = [];
 
@@ -38,8 +40,23 @@ namespace Files.App.Views
 			_initialized = true;
 
 			_viewModel.StatusCenterItems.CollectionChanged += OnStatusCenterItemsChanged;
+			_userSettings.LayoutSettingsService.PropertyChanged += OnSettingsPropertyChanged;
 			foreach (var item in _viewModel.StatusCenterItems)
 				TrackIfActive(item);
+		}
+
+		private static void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName is not nameof(ILayoutSettingsService.ShowFileOperationProgressWindow))
+				return;
+
+			if (_userSettings.LayoutSettingsService.ShowFileOperationProgressWindow)
+				EnsureShown();
+			else
+			{
+				CancelPendingShow();
+				_window?.Close();
+			}
 		}
 
 		private static bool TracksOperation(StatusCenterItem item)
@@ -84,13 +101,6 @@ namespace Files.App.Views
 			if (sender is not StatusCenterItem item)
 				return;
 
-			if (e.PropertyName is nameof(StatusCenterItem.FileSystemOperationReturnResult)
-				&& item.FileSystemOperationReturnResult is not ReturnResult.InProgress)
-			{
-				Untrack(item);
-				return;
-			}
-
 			if (e.PropertyName is nameof(StatusCenterItem.IsExpanded))
 			{
 				UpdateWindowSize();
@@ -106,15 +116,44 @@ namespace Files.App.Views
 			}
 		}
 
+		private static bool CanShow()
+			=> Operations.Count > 0
+				&& !_userDismissed
+				&& _userSettings.LayoutSettingsService.ShowFileOperationProgressWindow
+				&& Operations.Any(TransferStarted);
+
 		private static void EnsureShown()
 		{
-			if (Operations.Count == 0 || _userDismissed || !Operations.Any(TransferStarted))
+			if (!CanShow())
 				return;
 
 			if (_window is not null && _window.AppWindow.IsVisible)
+			{
 				UpdateWindowSize();
-			else
-				Show();
+				return;
+			}
+
+			// Debounce so sub-second operations never flash the window open
+			var cts = _pendingShow ??= new();
+			var token = cts.Token;
+			_ = Task.Delay(400).ContinueWith(_ =>
+			{
+				if (token.IsCancellationRequested)
+					return;
+
+				MainWindow.Instance.DispatcherQueue.TryEnqueue(() =>
+				{
+					if (CanShow() && (_window is null || !_window.AppWindow.IsVisible))
+						Show();
+				});
+			}, CancellationToken.None);
+		}
+
+		private static void CancelPendingShow()
+		{
+			_pendingShow?.Cancel();
+			_pendingShow?.Dispose();
+			_pendingShow = null;
 		}
 
 		private static void Untrack(StatusCenterItem item)
@@ -126,9 +165,14 @@ namespace Files.App.Views
 
 			// Auto-close once nothing is in flight; closing the window never cancels operations
 			if (Operations.Count == 0)
+			{
+				CancelPendingShow();
 				_window?.Close();
+			}
 			else
+			{
 				UpdateWindowSize();
+			}
 		}
 
 		private static void Show()
@@ -164,6 +208,7 @@ namespace Files.App.Views
 			{
 				_window = null;
 				_userDismissed = Operations.Count > 0;
+				CancelPendingShow();
 			};
 
 			var appWindow = window.AppWindow;
