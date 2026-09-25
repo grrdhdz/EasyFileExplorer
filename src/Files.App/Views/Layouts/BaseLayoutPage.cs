@@ -6,6 +6,7 @@ using Files.App.Controls;
 using Files.App.Helpers.ContextFlyouts;
 using Files.App.UserControls.Menus;
 using Files.App.ViewModels.Layouts;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -666,8 +667,8 @@ namespace Files.App.Views.Layouts
 		{
 			try
 			{
-				var parentShellPage = await EnsurePageIsCurrentAsync();
-				var shellViewModel = parentShellPage.GetRequiredShellViewModel();
+				var parentShellPage = ParentShellPageInstance
+					?? throw new InvalidOperationException("The layout does not have a parent shell page.");
 				var commandsViewModel = CommandsViewModel
 					?? throw new InvalidOperationException("The layout commands are not initialized.");
 				var instanceViewModel = parentShellPage.InstanceViewModel;
@@ -686,6 +687,8 @@ namespace Files.App.Views.Layouts
 				shiftPressed = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
 				SelectedItemsPropertiesViewModel.CheckAllFileExtensions(selectedItems.Select(x => x.FileExtension).ToList());
 
+				// Build the menu synchronously so it never renders empty - a popup that opens with no items
+				// keeps its zero-size frame even if items land after the first measure.
 				var items = ContentPageContextFlyoutFactory.GetItemContextCommandsWithoutShellItems(currentInstanceViewModel: instanceViewModel, selectedItems: selectedItems, selectedItemsPropertiesViewModel: SelectedItemsPropertiesViewModel, commandsViewModel: commandsViewModel, shiftPressed: shiftPressed, itemViewModel: null);
 				var host = ItemContextFlyoutHost;
 				host.Build(items);
@@ -719,6 +722,9 @@ namespace Files.App.Views.Layouts
 					// Place the primary row BEFORE the menu renders so it does not jump on an upward open.
 					host.ResolvePlacement();
 
+					// Wait for the pane to become current only here - the shell fetch needs the live WorkingDirectory
+					var shellViewModel = (await EnsurePageIsCurrentAsync()).GetRequiredShellViewModel();
+
 					var shellMenuItems = await ContentPageContextFlyoutFactory.GetItemContextShellCommandsAsync(
 						shellViewModel.WorkingDirectory, selectedItems, shiftPressed, false, token);
 
@@ -750,7 +756,7 @@ namespace Files.App.Views.Layouts
 			}
 			catch (Exception error)
 			{
-				Debug.WriteLine(error);
+				App.Logger.LogWarning(error, error.Message);
 			}
 		}
 
@@ -939,7 +945,8 @@ namespace Files.App.Views.Layouts
 		{
 			try
 			{
-				var parentShellPage = await EnsurePageIsCurrentAsync();
+				var parentShellPage = ParentShellPageInstance
+					?? throw new InvalidOperationException("The layout does not have a parent shell page.");
 				var shellViewModel = parentShellPage.GetRequiredShellViewModel();
 				var commandsViewModel = CommandsViewModel
 					?? throw new InvalidOperationException("The layout commands are not initialized.");
@@ -950,6 +957,9 @@ namespace Files.App.Views.Layouts
 				var currentFolder = shellViewModel.CurrentFolder
 					?? throw new InvalidOperationException("The current folder is not available.");
 				List<ListedItem> contextItems = [currentFolder];
+
+				// Build the menu synchronously so it never renders empty - a popup that opens with no items
+				// keeps its zero-size frame even if items land after the first measure.
 				var items = ContentPageContextFlyoutFactory.GetItemContextCommandsWithoutShellItems(currentInstanceViewModel: instanceViewModel, selectedItems: contextItems, commandsViewModel: commandsViewModel, shiftPressed: shiftPressed, itemViewModel: shellViewModel, selectedItemsPropertiesViewModel: null);
 				var host = BaseContextFlyoutHost;
 				host.Build(items);
@@ -963,6 +973,9 @@ namespace Files.App.Views.Layouts
 					var (moreOptions, moreSeparator) = host.AddShowMoreOptionsIfEnabled(items);
 
 					host.ResolvePlacement();
+
+					// Wait for the pane to become current only here - the shell fetch needs the live WorkingDirectory
+					shellViewModel = (await EnsurePageIsCurrentAsync()).GetRequiredShellViewModel();
 
 					var shellMenuItems = await ContentPageContextFlyoutFactory.GetItemContextShellCommandsAsync(workingDir: shellViewModel.WorkingDirectory, selectedItems: [], shiftPressed: shiftPressed, showOpenMenu: false, token);
 					if (token.IsCancellationRequested)
@@ -986,7 +999,7 @@ namespace Files.App.Views.Layouts
 			}
 			catch (Exception error)
 			{
-				Debug.WriteLine(error);
+				App.Logger.LogWarning(error, error.Message);
 			}
 		}
 
