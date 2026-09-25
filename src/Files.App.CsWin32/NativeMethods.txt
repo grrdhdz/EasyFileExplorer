@@ -407,3 +407,6 @@ SBSP_ABSOLUTE
 K32EmptyWorkingSet
 GetDoubleClickTime
 SHChangeNotify
+FillRect
+CreateSolidBrush
+GetClientRect

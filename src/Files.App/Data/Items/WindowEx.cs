@@ -335,6 +335,23 @@ namespace Files.App.Data.Items
 						_hasOverlappedPlacement = true;
 						break;
 					}
+				case 0x0014 /*WM_ERASEBKGND*/:
+					{
+						// The window class erases uncovered areas to black during resize. Fill them with the
+						// theme background instead so the strip exposed ahead of the compositor isn't jarring.
+						var dark = (Content as FrameworkElement)?.ActualTheme != ElementTheme.Light;
+						var brush = PInvoke.CreateSolidBrush(dark ? new COLORREF(0x00202020) : new COLORREF(0x00F3F3F3));
+						try
+						{
+							PInvoke.GetClientRect(param0, out RECT rect);
+							PInvoke.FillRect(new HDC((nint)param2.Value), &rect, brush);
+						}
+						finally
+						{
+							PInvoke.DeleteObject(brush);
+						}
+						return new LRESULT(1);
+					}
 			}
 
 			var pfnOldWndProc = (delegate* unmanaged[Stdcall]<HWND, uint, WPARAM, LPARAM, LRESULT>)_oldWndProc;
