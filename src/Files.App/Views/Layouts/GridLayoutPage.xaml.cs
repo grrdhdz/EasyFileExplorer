@@ -951,6 +951,16 @@ namespace Files.App.Views.Layouts
 				ScrollViewer.SetVerticalScrollMode(FileList, ScrollMode.Enabled);
 		}
 
+		// DragLeave/Drop do not run for every drag exit path (Esc, drops outside
+		// the window); DragItemsCompleted is the reliable end signal (#14484).
+		protected override void FileList_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+		{
+			base.FileList_DragItemsCompleted(sender, args);
+
+			if (ShouldDisableScrollingWhenDragAndDrop)
+				ScrollViewer.SetVerticalScrollMode(FileList, ScrollMode.Enabled);
+		}
+
 		private void ItemsLayout_DragEnter(object sender, DragEventArgs e)
 		{
 			if (ShouldDisableScrollingWhenDragAndDrop)
