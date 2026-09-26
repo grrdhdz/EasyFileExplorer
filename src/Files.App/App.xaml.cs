@@ -307,14 +307,12 @@ namespace Files.App
 			// Persist the final active stretch; it is reported on the next launch
 			ActiveSessionTracker.OnActivationChanged(false);
 
-			// Save the current tab list in case it was overwriten by another instance
-			if (userSettingsService.GeneralSettingsService.ContinueLastSessionOnStartUp || userSettingsService.AppSettingsService.RestoreTabsOnStartup)
-				AppLifecycleHelper.SaveSessionTabs();
-			else
-				await commandManager.CloseAllTabs.ExecuteAsync();
-
+			// Picker mode: capture the selection before the tab teardown below
+			// disposes the panes, otherwise the output file is never written
 			if (OutputPath is not null)
 			{
+				AppModel.ForceProcessTermination = true;
+
 				var instance = MainPageViewModel.AppInstances.FirstOrDefault(x =>
 					(x.TabItemContent ?? throw new InvalidOperationException("A tab does not have content.")).IsCurrentInstance);
 				if (instance is null)
@@ -330,6 +328,12 @@ namespace Files.App
 				using var eventHandle = PInvoke.CreateEvent(null, false, false, "FILEDIALOG");
 				PInvoke.SetEvent(eventHandle);
 			}
+
+			// Save the current tab list in case it was overwriten by another instance
+			if (userSettingsService.GeneralSettingsService.ContinueLastSessionOnStartUp || userSettingsService.AppSettingsService.RestoreTabsOnStartup)
+				AppLifecycleHelper.SaveSessionTabs();
+			else
+				await commandManager.CloseAllTabs.ExecuteAsync();
 
 			// Dev, preview and stable all run as "Files"; only this channel's other instances block parking
 			static bool IsSameChannelInstance(Process p)

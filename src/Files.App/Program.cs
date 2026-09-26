@@ -288,12 +288,33 @@ namespace Files.App
 				CommandLineParser.SplitArguments(launchArgs.Arguments, true).FirstOrDefault() is string arg0 &&
 				(arg0.EndsWith($"files-dev.exe", StringComparison.OrdinalIgnoreCase) ||
 				arg0.EndsWith($"files-dev", StringComparison.OrdinalIgnoreCase)) ? launchArgs.Arguments : null;
-			var cmdProtocolArgs = activatedArgs.Data is IProtocolActivatedEventArgs protocolArgs &&
-				protocolArgs.Uri.Query.TrimStart('?').Split('=') is string[] parsedArgs &&
+			// The files-dev: URI can also arrive as a plain launch argument when the
+			// protocol is handled by a per-user shell registration (unpackaged builds)
+			var protocolUri = activatedArgs.Data switch
+			{
+				IProtocolActivatedEventArgs protocolArgs => protocolArgs.Uri,
+				ILaunchActivatedEventArgs { Arguments: string arg } => GetForwardedProtocolUri(arg),
+				_ => null,
+			};
+
+			var cmdProtocolArgs = protocolUri is not null &&
+				protocolUri.Query.TrimStart('?').Split('=') is string[] parsedArgs &&
 				parsedArgs.Length == 2 && parsedArgs[0] == "cmd" ? Uri.UnescapeDataString(parsedArgs[1]) : null;
 			var cmdLineArgs = activatedArgs.Data is ICommandLineActivatedEventArgs cmdArgs ? cmdArgs.Operation.Arguments : null;
 
 			return cmdLaunchArgs ?? cmdProtocolArgs ?? cmdLineArgs;
+		}
+
+		/// <summary>
+		/// Finds a files-dev: URI forwarded as one of the launch arguments.
+		/// </summary>
+		internal static Uri? GetForwardedProtocolUri(string? arguments)
+		{
+			var uriToken = arguments is null ? null : CommandLineParser.SplitArguments(arguments, true)
+				.Select(t => t.Trim('"'))
+				.FirstOrDefault(t => t.StartsWith("files-dev:", StringComparison.OrdinalIgnoreCase));
+
+			return uriToken is not null && Uri.TryCreate(uriToken, UriKind.Absolute, out var uri) ? uri : null;
 		}
 
 		/// <summary>

@@ -65,13 +65,22 @@ namespace Files.App
 			switch (activatedEventArgs)
 			{
 				case ILaunchActivatedEventArgs launchArgs:
-					if (launchArgs.Arguments is not null &&
-						(CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].EndsWith($"files-dev.exe", StringComparison.OrdinalIgnoreCase)
-						|| CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].EndsWith($"files-dev", StringComparison.OrdinalIgnoreCase)
-						|| CommandLineParser.SplitArguments(launchArgs.Arguments, true)[0].Equals(Path.Join(AppData.InstalledLocationPath, "Files.exe"), StringComparison.OrdinalIgnoreCase)))
+					var launchArguments = launchArgs.Arguments;
+
+					// A files-dev: URI can be forwarded as a plain launch argument by a
+					// per-user shell registration (unpackaged builds); unwrap the cmd payload
+					if (Program.GetForwardedProtocolUri(launchArguments) is Uri forwardedUri &&
+						forwardedUri.Query.TrimStart('?').Split('=') is { Length: 2 } forwardedArgs &&
+						forwardedArgs[0] == "cmd")
+						launchArguments = Uri.UnescapeDataString(forwardedArgs[1]);
+
+					if (launchArguments is not null &&
+						(CommandLineParser.SplitArguments(launchArguments, true)[0].EndsWith($"files-dev.exe", StringComparison.OrdinalIgnoreCase)
+						|| CommandLineParser.SplitArguments(launchArguments, true)[0].EndsWith($"files-dev", StringComparison.OrdinalIgnoreCase)
+						|| CommandLineParser.SplitArguments(launchArguments, true)[0].Equals(Path.Join(AppData.InstalledLocationPath, "Files.exe"), StringComparison.OrdinalIgnoreCase)))
 					{
 						// WINUI3: When launching from commandline the argument is not ICommandLineActivatedEventArgs (#10370)
-						var ppm = CommandLineParser.ParseUntrustedCommands(launchArgs.Arguments);
+						var ppm = CommandLineParser.ParseUntrustedCommands(launchArguments);
 						if (ppm.IsEmpty())
 							rootFrame.Navigate(typeof(MainPage), null, new SuppressNavigationTransitionInfo());
 						else
